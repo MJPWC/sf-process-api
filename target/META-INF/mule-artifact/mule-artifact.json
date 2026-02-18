@@ -15,8 +15,6 @@
         "plantuml"
       ],
       "exportedResources": [
-        "application-types.xml",
-        "common.yaml",
         "log4j2.xml",
         "sf-process-api.xml"
       ]

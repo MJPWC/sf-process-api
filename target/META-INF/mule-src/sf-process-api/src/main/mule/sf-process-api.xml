@@ -1,124 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<http:listener-config name="HTTP_Listener_config"
-		doc:name="HTTP Listener config"
-		doc:id="bf267deb-a213-400e-b55b-dc674a550dce">
-		<http:listener-connection host="0.0.0.0"
-			port="8081" />
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="87a3b85a-9649-4a31-a63c-5146dd7c447f" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<http:request-config
-		name="HTTP_Request_configuration"
-		doc:name="HTTP Request configuration"
-		doc:id="36aa459d-8fbc-4c0a-af99-3723de39c104" />
-	<flow name="sf-system-sapiFlow"
-		doc:id="f5e78a3d-8309-4dec-992b-0050a67efad6">
-		<http:listener doc:name="Listener"
-			doc:id="63e5fba7-06de-44ba-8bef-22bfda042e15"
-			config-ref="HTTP_Listener_config" path="/api/imageGeneration"
-			allowedMethods="POST" outputMimeType="application/json" />
-		<ee:transform doc:name="Transform Message">
-			<ee:message>
-				<ee:set-payload
-					doc:id="cfff9d4c-cf2d-48e4-8184-abd25c1f66b0"
-					doc:name="Set payload"><![CDATA[%dw 2.0
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="505de5f3-56a4-41a1-a55c-c55b35885835" />
+	<flow name="sf-process-apiFlow" doc:id="068d4c36-0c10-4407-b552-fd36ae411c12" >
+		<http:listener doc:name="Listener" doc:id="90ef02f6-2417-4e53-9919-c92a93824bbf" path="/api/imageGeneration" config-ref="HTTP_Listener_config"/>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload doc:id="715cde5f-abf6-43af-a5b0-944f8439737b" doc:name="Set payload"><![CDATA[%dw 2.0
 import java!plantuml::PlantUMLEncoder
 output application/java
 ---
 PlantUMLEncoder::encode(payload.script)]]></ee:set-payload>
-			</ee:message>
-			<ee:variables>
-				<ee:set-variable variableName="plantumlEndpoint"><![CDATA["http://www.plantuml.com/plantuml/png/"]]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-		<logger doc:id="31a12309-b7e6-409f-9019-81c11080cc12"
-			doc:name="Logger"
-			message="After Transform component, encodedScript ||| Payload : #[payload] "></logger>
-		<http:request
-			doc:id="33b49a15-7f6c-4882-b305-a5f921b5a94d" doc:name="Request"
-			url="#[vars.plantumlEndpoint ++ payload]"></http:request>
-		<logger doc:id="1a01b7a0-9412-46e5-8b6f-37daafc005b2"
-			doc:name="Logger" message="Response Recieved from PlantUML "></logger>
-
-		<logger level="INFO" doc:name="Logger"
-			doc:id="e88bac5b-1656-40d6-b62b-afc6055fa8f6"
-			message='#["start object creation into salesforce"]' />
-		<ee:transform doc:name="Transform Message"
-			doc:id="8ceeb38b-88a8-41fb-a9d1-54d332adecb8">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="plantumlEndpoint"><![CDATA["http://www.plantuml.com/plantuml/png/"]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger doc:id="909f0712-9009-41c1-80ed-8368f9fb63f6" doc:name="Logger" message="After Transform component, encodedScript ||| Payload : #[payload] "></logger>
+        <http:request doc:id="d7a9354f-7134-4de7-9b56-a736aa0fe783" doc:name="Request" url="#[vars.plantumlEndpoint ++ payload]"></http:request>
+        <logger doc:id="28c21649-8560-43c8-9333-863765ccc072" doc:name="Logger" message="Response Recieved from PlantUML." level="INFO"></logger>
+        <ee:transform doc:id="58db353f-7836-4eb3-866a-bb36d30d6d5c" doc:name="Transform">
+            <ee:message>
+                <ee:set-payload doc:id="6b2f7549-7e74-4a02-810d-659669648f8f" doc:name="Set payload"><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/java
+---
+[{
+  Title: "PlantUML_diagram",
+  PathOnClient: "diagram.png",
+  VersionData: toBase64(payload as Binary)
+}]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="1ddbc0ed-d09c-4de8-9e44-6f7764e7d320" config-ref="HTTP_Request_configuration" url="https://sf-system-api-2dvtj5.5sc6y6-3.usa-e2.cloudhub.io/api/imageGeneration/create"/>
+		<ee:transform doc:name="Transform Message" doc:id="5bcd6527-233e-44e5-be9b-9e876db8243f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<http:request method="POST" doc:name="Request"
-			doc:id="69c28b9f-f4c8-4166-ab70-10a17de1000e"
-			config-ref="HTTP_Request_configuration"
-			url="https://sf-system-api-2dvtj5.5sc6y6-3.usa-e2.cloudhub.io/api/imageGeneration/create"
-			sendCorrelationId="AUTO">
-			<http:headers><![CDATA[#[{
-    "Content-Type": "image/png"
-}]]]></http:headers>
-		</http:request>
-		<ee:transform doc:name="Transform Message"
-			doc:id="3e20af5a-7488-4182-90cf-86733272105f">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<logger level="INFO" doc:name="Logger"
-			doc:id="1a82ced6-f8da-45f8-9e68-c14b459195b9"
-			message="contentVersionId from SF: #[payload]" />
-		<http:request method="POST" doc:name="Request"
-			doc:id="98dd3da7-6ea0-40fd-b315-8906c1c67a34"
-			config-ref="HTTP_Request_configuration"
-			url="https://sf-system-api-2dvtj5.5sc6y6-3.usa-e2.cloudhub.io/api/imageGeneration/query"
-			sendCorrelationId="AUTO">
-			<http:body><![CDATA[#[%dw 2.0
-output application/json
----
-payload]]]></http:body>
-		</http:request>
-		<ee:transform doc:name="Transform Message"
-			doc:id="f0212d4f-a469-4db3-ab70-4c2b6c88c159">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+		<logger level="INFO" doc:name="Logger" doc:id="495db68e-58f7-48ff-901f-2c5feef1a9c6" message="contentVersionId from SF: #[payload]"/>
+		<http:request method="POST" doc:name="Request" doc:id="d8970c6f-58cb-4d75-9dab-2267ed4d3d0c" config-ref="HTTP_Request_configuration" url="https://sf-system-api-2dvtj5.5sc6y6-3.usa-e2.cloudhub.io/api/imageGeneration/query"/>
+		<logger level="INFO" doc:name="Logger" doc:id="3388e36b-f95b-472c-85cc-47c653627ecc" message="Response from query #[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="d9782a34-d9f6-4c78-80f9-3156a7da12ee" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	imageUrl: payload.imageUrl
+	url: payload.imageUrl
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger"
-			doc:id="2778eaf6-9baa-41c1-a7ad-1dcf0110a641"
-			message="Response from the Query component. #[payload]" />
-		<error-handler>
-			<on-error-propagate enableNotifications="true"
-				logException="true" doc:name="On Error Propagate"
-				doc:id="a8e29b21-a1b2-4cd8-95d6-5928523c60fd" type="ANY">
-				<ee:transform doc:name="Transform Message"
-					doc:id="a3ebf387-be2c-439c-acfd-22bdcd478648">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/java
+		<logger level="INFO" doc:name="Logger" doc:id="35f13ec1-bec3-4613-9da5-0220733f8f76" message="Image has been created successfully."/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="bf4d1d07-bd76-4b99-ae72-4c6a79912101" >
+				<ee:transform doc:name="Transform Message" doc:id="faa4b4ee-827a-479d-a136-e61a62492e04" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
 ---
-payload]]></ee:set-payload>
+error.description]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 			</on-error-propagate>
 		</error-handler>
-
-	</flow>
+	
+</flow>
 </mule>
