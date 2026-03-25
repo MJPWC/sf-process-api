@@ -9,26 +9,26 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="87a3b85a-9649-4a31-a63c-5146dd7c447f" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="505de5f3-56a4-41a1-a55c-c55b35885835" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="505de5f3-56a4-41a1-a55c-c55b35885835" responseTimeout="60000" />
 	<flow name="sf-process-apiFlow" doc:id="068d4c36-0c10-4407-b552-fd36ae411c12" >
 		<http:listener doc:name="Listener" doc:id="90ef02f6-2417-4e53-9919-c92a93824bbf" path="/api/imageGeneration" config-ref="HTTP_Listener_config"/>
         <ee:transform doc:name="Transform Message">
-            <ee:message>
+<ee:message>
                 <ee:set-payload doc:id="715cde5f-abf6-43af-a5b0-944f8439737b" doc:name="Set payload"><![CDATA[%dw 2.0
 import java!plantuml::PlantUMLEncoder
 output application/java
 ---
-PlantUMLEncoder::encode(payload.script)]]></ee:set-payload>
-            </ee:message>
+PlantUMLEncoder::encode(payload.script default "")]]></ee:set-payload>
+</ee:message>
             <ee:variables>
                 <ee:set-variable variableName="plantumlEndpoint"><![CDATA["http://www.plantuml.com/plantuml/png/"]]></ee:set-variable>
             </ee:variables>
-        </ee:transform>
+</ee:transform>
         <logger doc:id="909f0712-9009-41c1-80ed-8368f9fb63f6" doc:name="Logger" message="After Transform component, encodedScript ||| Payload : #[payload] "></logger>
         <http:request doc:id="d7a9354f-7134-4de7-9b56-a736aa0fe783" doc:name="Request" url="#[vars.plantumlEndpoint ++ payload]"></http:request>
         <logger doc:id="28c21649-8560-43c8-9333-863765ccc072" doc:name="Logger" message="Response Recieved from PlantUML." level="INFO"></logger>
         <ee:transform doc:id="58db353f-7836-4eb3-866a-bb36d30d6d5c" doc:name="Transform">
-            <ee:message>
+<ee:message>
                 <ee:set-payload doc:id="6b2f7549-7e74-4a02-810d-659669648f8f" doc:name="Set payload"><![CDATA[%dw 2.0
 import * from dw::core::Binaries
 output application/java
@@ -38,9 +38,9 @@ output application/java
   PathOnClient: "diagram.png",
   VersionData: toBase64(payload as Binary)
 }]]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-		<http:request method="POST" doc:name="Request" doc:id="1ddbc0ed-d09c-4de8-9e44-6f7764e7d320" config-ref="HTTP_Request_configuration" url="https://sf-system-api-2dvtj5.5sc6y6-3.usa-e2.cloudhub.io/api/imageGeneration/create"/>
+</ee:message>
+</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="1ddbc0ed-d09c-4de8-9e44-6f7764e7d320" config-ref="HTTP_Request_configuration" url="${sf.system.api.url}/api/imageGeneration/create" responseTimeout="60000"/>
 		<ee:transform doc:name="Transform Message" doc:id="5bcd6527-233e-44e5-be9b-9e876db8243f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -50,7 +50,7 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="495db68e-58f7-48ff-901f-2c5feef1a9c6" message="contentVersionId from SF: #[payload]"/>
-		<http:request method="POST" doc:name="Request" doc:id="d8970c6f-58cb-4d75-9dab-2267ed4d3d0c" config-ref="HTTP_Request_configuration" url="https://sf-system-api-2dvtj5.5sc6y6-3.usa-e2.cloudhub.io/api/imageGeneration/query"/>
+		<http:request method="POST" doc:name="Request" doc:id="d8970c6f-58cb-4d75-9dab-2267ed4d3d0c" config-ref="HTTP_Request_configuration" url="${sf.system.api.url}/api/imageGeneration/query" responseTimeout="30000"/>
 		<logger level="INFO" doc:name="Logger" doc:id="3388e36b-f95b-472c-85cc-47c653627ecc" message="Response from query #[payload]"/>
 		<ee:transform doc:name="Transform Message" doc:id="d9782a34-d9f6-4c78-80f9-3156a7da12ee" >
 			<ee:message >
@@ -58,7 +58,7 @@ payload]]></ee:set-payload>
 output application/json
 ---
 {
-	url: payload.imageUrl
+	url: payload.imageUrl default ""
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -70,7 +70,7 @@ output application/json
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-error.description]]></ee:set-payload>
+error.description default "An error occurred"]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 			</on-error-propagate>
